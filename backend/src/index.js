@@ -31,10 +31,29 @@ app.use('/api/players', playerRoutes);
 app.use('/api/stats', statsRoutes);
 
 // Health check
-app.get('/health', (req, res) => res.json({ status: 'ok', version: '1.0.0' }));
+app.get('/health', async (req, res) => {
+  try {
+    await pool.query('SELECT 1');
+    res.json({ status: 'ok', version: '1.0.0', db: 'connected' });
+  } catch {
+    res.status(503).json({ status: 'degraded', version: '1.0.0', db: 'disconnected' });
+  }
+});
 
 // WebSocket setup (real-time GPS tracking, game events)
 setupWebSocket(wss);
+
+// Global error handler — never leak stack traces to client
+app.use((err, req, res, _next) => {
+  const status = err.status || 500;
+  if (status >= 500) console.error('[ERROR]', err);
+  res.status(status).json({ error: status < 500 ? err.message : 'Internal server error' });
+});
+
+// Handle unhandled promise rejections so the process doesn't crash
+process.on('unhandledRejection', (reason) => {
+  console.error('[UNHANDLED REJECTION]', reason);
+});
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
