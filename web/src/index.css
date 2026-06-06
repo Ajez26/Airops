@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --hud-green: #00FF41;
+  --hud-amber: #FFB300;
+  --hud-red: #FF4444;
+  --hud-blue: #4444FF;
+  --hud-bg: #0A0E0F;
+  --hud-surface: #111518;
+  --hud-border: #1E2A2E;
+}
+
+body {
+  background-color: var(--hud-bg);
+  color: #CDD6D9;
+  font-family: 'JetBrains Mono', monospace;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scanline overlay effect */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 255, 65, 0.015) 2px,
+    rgba(0, 255, 65, 0.015) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* HUD glow effects */
+.hud-glow-green {
+  text-shadow: 0 0 8px var(--hud-green), 0 0 16px var(--hud-green);
+}
+
+.hud-glow-amber {
+  text-shadow: 0 0 8px var(--hud-amber), 0 0 16px var(--hud-amber);
+}
+
+.hud-glow-red {
+  text-shadow: 0 0 8px var(--hud-red), 0 0 16px var(--hud-red);
+}
+
+/* HUD panel */
+.hud-panel {
+  background: var(--hud-surface);
+  border: 1px solid var(--hud-border);
+  position: relative;
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+}
+
+.hud-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--hud-green), transparent);
+  opacity: 0.4;
+}
+
+/* Status indicators */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-dot.active { background: var(--hud-green); box-shadow: 0 0 6px var(--hud-green); }
+.status-dot.warning { background: var(--hud-amber); box-shadow: 0 0 6px var(--hud-amber); }
+.status-dot.danger { background: var(--hud-red); box-shadow: 0 0 6px var(--hud-red); }
+.status-dot.offline { background: #444; }
+
+/* Leaflet map dark theme */
+.leaflet-container {
+  background: #0A0E0F !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--hud-bg); }
+::-webkit-scrollbar-thumb { background: var(--hud-border); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--hud-green); }

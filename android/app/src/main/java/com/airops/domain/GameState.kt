@@ -16,9 +16,11 @@ data class Match(
 
 enum class GameMode(val displayName: String) {
     @SerializedName("team_deathmatch") TEAM_DEATHMATCH("Team Deathmatch"),
-    @SerializedName("domination") DOMINATION("Dominación"),
-    @SerializedName("battle_royale") BATTLE_ROYALE("Battle Royale"),
-    @SerializedName("custom") CUSTOM("Personalizado")
+    @SerializedName("domination") DOMINATION("Domination"),
+    @SerializedName("free_for_all") FREE_FOR_ALL("Free for All"),
+    @SerializedName("capture_the_flag") CAPTURE_THE_FLAG("Capture The Flag"),
+    @SerializedName("vip") VIP("VIP"),
+    @SerializedName("assault") ASSAULT("Assault")
 }
 
 enum class MatchStatus {
@@ -81,4 +83,63 @@ data class ChatMessage(
     val message: String,
     val scope: String, // "team" | "all"
     val timestamp: Long
+)
+
+/**
+ * GameState — real-time match snapshot pushed via WebSocket.
+ * All fields referenced in MatchScreen.kt are present here.
+ */
+data class GameState(
+    /** Human-readable match name, e.g. "Operation Desert Storm" */
+    val matchName: String = "",
+
+    /** 6-char join code, e.g. "AB3X7K" */
+    val matchCode: String = "",
+
+    /** One of: lobby | active | paused | finished */
+    val status: String = "lobby",
+
+    /** Alpha team score */
+    val scoreAlpha: Int = 0,
+
+    /** Bravo team score */
+    val scoreBravo: Int = 0,
+
+    /** Number of alive players currently in the match */
+    val aliveCount: Int = 0,
+
+    /** Total players in the match (alive + dead + spectating) */
+    val totalPlayers: Int = 0,
+
+    /** This player's team name, e.g. "Alpha" or "Bravo" */
+    val teamName: String = "",
+
+    /** Formatted elapsed time, e.g. "04:27" */
+    val elapsedTime: String = "00:00",
+
+    /** Elapsed seconds since match started (used for timer math) */
+    val elapsedSeconds: Long = 0L,
+
+    /** Full player list for the scoreboard */
+    val players: List<MatchPlayer> = emptyList(),
+
+    /** Objectives list for domination / CTF modes */
+    val objectives: List<Objective> = emptyList()
+)
+
+data class User(
+    val id: String,
+    val uid: String,
+    val displayName: String,
+    val email: String,
+    val avatarUrl: String? = null
+)
+
+data class UserStats(
+    val totalMatches: Int = 0,
+    val wins: Int = 0,
+    val losses: Int = 0,
+    val totalKills: Int = 0,
+    val totalDeaths: Int = 0,
+    val kdRatio: Double = 0.0
 )

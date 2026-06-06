@@ -13,6 +13,9 @@ CREATE TABLE IF NOT EXISTS users (
   role VARCHAR(20) NOT NULL DEFAULT 'player' CHECK (role IN ('player', 'organizer', 'admin')),
   total_matches INTEGER DEFAULT 0,
   total_wins INTEGER DEFAULT 0,
+  wins INTEGER DEFAULT 0,
+  total_kills INTEGER DEFAULT 0,
+  total_deaths INTEGER DEFAULT 0,
   total_km_walked DECIMAL(10,2) DEFAULT 0,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
@@ -24,7 +27,7 @@ CREATE TABLE IF NOT EXISTS matches (
   code VARCHAR(8) UNIQUE NOT NULL,
   name VARCHAR(100) NOT NULL,
   organizer_id UUID REFERENCES users(id),
-  game_mode VARCHAR(30) NOT NULL CHECK (game_mode IN ('team_deathmatch', 'domination', 'battle_royale', 'custom')),
+  game_mode VARCHAR(30) NOT NULL CHECK (game_mode IN ('team_deathmatch', 'domination', 'free_for_all', 'capture_the_flag', 'vip', 'assault', 'battle_royale', 'custom')),
   status VARCHAR(20) NOT NULL DEFAULT 'lobby' CHECK (status IN ('lobby', 'active', 'paused', 'finished')),
   max_players INTEGER NOT NULL DEFAULT 20,
   custom_map_layer JSONB,

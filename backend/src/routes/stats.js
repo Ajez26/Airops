@@ -28,4 +28,49 @@ router.get('/me', verifyToken, async (req, res) => {
   }
 });
 
+// GET /api/stats/leaderboard — Global leaderboard (top 50 by K/D)
+router.get('/leaderboard', verifyToken, async (req, res) => {
+  const { db } = req.app.locals;
+  try {
+    const result = await db.query(
+      `SELECT
+         u.id,
+         u.display_name,
+         u.avatar_url,
+         u.total_kills,
+         u.total_deaths,
+         GREATEST(u.wins, u.total_wins) AS wins,
+         u.total_matches,
+         CASE WHEN u.total_deaths = 0 THEN u.total_kills
+              ELSE ROUND(u.total_kills::numeric / u.total_deaths, 2)
+         END AS kd_ratio
+       FROM users u
+       WHERE u.total_matches > 0
+       ORDER BY kd_ratio DESC, u.total_kills DESC
+       LIMIT 50`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to get leaderboard' });
+  }
+});
+
+// GET /api/stats/match/:id — Stats for a specific match
+router.get('/match/:id', verifyToken, async (req, res) => {
+  const { db } = req.app.locals;
+  try {
+    const players = await db.query(
+      `SELECT mp.*, u.display_name, u.avatar_url
+       FROM match_players mp
+       JOIN users u ON u.id = mp.user_id
+       WHERE mp.match_id = $1
+       ORDER BY mp.kills DESC`, [req.params.id]
+    );
+    res.json({ players: players.rows });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get match stats' });
+  }
+});
+
 module.exports = router;

@@ -124,4 +124,76 @@ router.patch('/:id/player', verifyToken, async (req, res) => {
   }
 });
 
+// POST /api/matches/:id/kill — Report a kill
+router.post('/:id/kill', verifyToken, async (req, res) => {
+  const { target_user_id } = req.body;
+  const { db } = req.app.locals;
+  try {
+    // Increment killer's kill count
+    await db.query(
+      `UPDATE match_players SET kills = kills + 1 WHERE match_id = $1 AND user_id = $2`,
+      [req.params.id, req.user.id]
+    );
+    // Mark target as dead and increment deaths
+    if (target_user_id) {
+      await db.query(
+        `UPDATE match_players SET deaths = deaths + 1, status = 'dead' WHERE match_id = $1 AND user_id = $2`,
+        [req.params.id, target_user_id]
+      );
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to report kill' });
+  }
+});
+
+// POST /api/matches/:id/end — End match (organizer only)
+router.post('/:id/end', verifyToken, async (req, res) => {
+  const { db } = req.app.locals;
+  try {
+    const result = await db.query(
+      `UPDATE matches SET status = 'finished', finished_at = NOW()
+       WHERE id = $1 AND organizer_id = $2 RETURNING *`,
+      [req.params.id, req.user.id]
+    );
+    if (!result.rows.length)
+      return res.status(403).json({ error: 'Not authorized or match not found' });
+
+    // Aggregate kills/deaths into users.total_kills, total_deaths, total_matches, wins
+    try {
+      const players = await db.query(
+        `SELECT mp.user_id, mp.kills, mp.deaths, mp.team_id FROM match_players mp WHERE mp.match_id = $1`,
+        [req.params.id]
+      );
+
+      // Determine winning team by total kills
+      const teamKills = {};
+      players.rows.forEach(p => {
+        if (p.team_id) teamKills[p.team_id] = (teamKills[p.team_id] || 0) + p.kills;
+      });
+      const winTeamId = Object.keys(teamKills).sort((a,b) => teamKills[b] - teamKills[a])[0];
+
+      for (const p of players.rows) {
+        const isWinner = p.team_id && p.team_id === winTeamId;
+        await db.query(
+          `UPDATE users SET
+             total_kills = total_kills + $1,
+             total_deaths = total_deaths + $2,
+             total_matches = total_matches + 1,
+             wins = wins + $3
+           WHERE id = $4`,
+          [p.kills || 0, p.deaths || 0, isWinner ? 1 : 0, p.user_id]
+        );
+      }
+    } catch (aggErr) {
+      console.error('Aggregation error (non-fatal):', aggErr.message);
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to end match' });
+  }
+});
+
 module.exports = router;

@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const { createServer } = require('http');
 const { WebSocketServer } = require('ws');
 
+const pool = require('./db/pool');
 const authRoutes = require('./routes/auth');
 const matchRoutes = require('./routes/matches');
 const playerRoutes = require('./routes/players');
@@ -19,6 +20,9 @@ const wss = new WebSocketServer({ server });
 app.use(helmet());
 app.use(cors({ origin: process.env.ALLOWED_ORIGINS?.split(',') || '*' }));
 app.use(express.json());
+
+// Attach DB pool to app locals (available in all route handlers as req.app.locals.db)
+app.locals.db = pool;
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -35,4 +39,6 @@ setupWebSocket(wss);
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`🎯 Airops backend running on port ${PORT}`);
+  console.log(`   WebSocket ready`);
+  console.log(`   DB: ${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || '5432'}/${process.env.DB_NAME || 'airops'}`);
 });
