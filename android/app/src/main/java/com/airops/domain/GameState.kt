@@ -129,10 +129,11 @@ data class GameState(
 
 data class User(
     val id: String,
-    val uid: String,
+    val uid: String = "",
     val displayName: String,
     val email: String,
-    val avatarUrl: String? = null
+    val avatarUrl: String? = null,
+    val role: String = "player"
 )
 
 data class UserStats(

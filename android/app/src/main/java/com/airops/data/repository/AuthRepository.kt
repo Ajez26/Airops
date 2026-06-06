@@ -3,15 +3,15 @@ package com.airops.data.repository
 import com.airops.domain.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.Firebase
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.firebase
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class AuthRepository @Inject constructor() {
-    private val auth: FirebaseAuth = firebase.auth
+    private val auth: FirebaseAuth = Firebase.auth
 
     suspend fun getCurrentUser(): User? {
         val firebaseUser = auth.currentUser ?: return null
@@ -48,6 +48,10 @@ class AuthRepository @Inject constructor() {
             avatarUrl = firebaseUser.photoUrl?.toString(),
             role = "player"
         )
+    }
+
+    fun signOut() {
+        auth.signOut()
     }
 
     suspend fun logout() {

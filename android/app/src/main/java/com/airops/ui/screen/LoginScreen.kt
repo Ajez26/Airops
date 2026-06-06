@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.airops.ui.theme.*
+import com.airops.domain.AuthState
 import com.airops.ui.viewmodel.AuthViewModel
 
 @Composable

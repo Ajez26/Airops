@@ -49,14 +49,17 @@ class MatchViewModel @Inject constructor(
         timerJob = viewModelScope.launch {
             while (true) {
                 delay(1000)
-                _gameState.value = _gameState.value?.copy(
-                    elapsedTime = formatTime((_gameState.value?.elapsedSeconds ?: 0) + 1)
+                val prev = _gameState.value ?: return@launch
+                val newSeconds = prev.elapsedSeconds + 1L
+                _gameState.value = prev.copy(
+                    elapsedSeconds = newSeconds,
+                    elapsedTime = formatTime(newSeconds)
                 )
             }
         }
     }
 
-    private fun formatTime(seconds: Int): String {
+    private fun formatTime(seconds: Long): String {
         val m = seconds / 60
         val s = seconds % 60
         return "%02d:%02d".format(m, s)
