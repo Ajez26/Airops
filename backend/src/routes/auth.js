@@ -3,8 +3,11 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const admin = require('firebase-admin');
 
-// POST /api/auth/register — Register or login after Firebase auth
-router.post('/register', async (req, res) => {
+// POST /api/auth/login — Register or login after Firebase auth (also aliased as /register)
+router.post('/login', async (req, res) => handleAuth(req, res));
+router.post('/register', async (req, res) => handleAuth(req, res));
+
+async function handleAuth(req, res) {
   const { firebase_token, display_name, avatar_url } = req.body;
   const { db } = req.app.locals;
 
@@ -25,6 +28,6 @@ router.post('/register', async (req, res) => {
     console.error(err);
     res.status(401).json({ error: 'Invalid Firebase token' });
   }
-});
+}
 
 module.exports = router;
